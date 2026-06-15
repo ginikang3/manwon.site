@@ -1,31 +1,44 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 import SearchForm from "@/components/SearchForm";
 import LandingPreview from "@/components/LandingPreview";
 
 export default function Home() {
+  const [user, setUser] = useState<any>(null);
   const [placeData, setPlaceData] = useState<any>(null);
   const [htmlCode, setHtmlCode] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+  }, [supabase]);
 
   const handleSearchResult = (data: any) => {
     setPlaceData(data);
     setHtmlCode("");
   };
 
+  const handleLogin = () => {
+    supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
   const generateLandingPage = async () => {
     if (!placeData) return;
-
     setLoading(true);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeData }),
+        body: JSON.stringify({ placeData, userId: user?.id }),
       });
-
       const data = await res.json();
-
       if (data?.html) {
         setHtmlCode(data.html);
       } else {
@@ -40,7 +53,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen text-white bg-[#050706]">
-
       {/* soft neon glow background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-lime-400/10 blur-[120px] rounded-full" />
@@ -49,37 +61,45 @@ export default function Home() {
       </div>
 
       <div className="relative max-w-4xl mx-auto px-4 py-12">
+        {/* Header with Login */}
+        <header className="flex justify-between items-center mb-12">
+          <div className="text-lime-300 font-bold text-xl">AI Gen</div>
+          {!user ? (
+            <button
+              onClick={handleLogin}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm hover:bg-white/10 transition"
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" className="w-4 h-4" alt="Google" />
+              로그인
+            </button>
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-lime-500/20 border border-lime-500/50 flex items-center justify-center font-bold text-lime-300">
+              {user.email?.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </header>
 
-        {/* header */}
         <div className="text-center mb-12">
           <div className="inline-flex px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs text-lime-300">
             AI Landing Generator
           </div>
-
           <h1 className="text-4xl md:text-5xl font-bold mt-6 leading-tight">
             Google Places →<br />
             <span className="text-lime-300">자동 랜딩 생성</span>
           </h1>
-
-          <p className="text-white/50 mt-4 text-sm md:text-base max-w-xl mx-auto">
-            업체 검색하면 바로 마케팅용 사이트 생성
-          </p>
         </div>
 
         {/* search card */}
-        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-5 shadow-[0_0_80px_rgba(34,197,94,0.08)] max-w-xl mx-auto">
-
+        <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-5 shadow-[0_0_80px_rgba(34,197,94,0.08)] max-w-xl mx-auto relative">
+          {!user && <div className="absolute inset-0 z-10 cursor-pointer" onClick={handleLogin} />}
+          
           <div className="scale-[0.96] origin-top">
             <SearchForm onResult={handleSearchResult} />
           </div>
 
-          {/* result */}
           {placeData && (
             <div className="mt-6 text-center">
-              <div className="text-lg font-semibold text-lime-300">
-                {placeData?.name}
-              </div>
-
+              <div className="text-lg font-semibold text-lime-300">{placeData?.name}</div>
               <button
                 onClick={generateLandingPage}
                 disabled={loading}
@@ -87,15 +107,10 @@ export default function Home() {
               >
                 {loading ? "생성 중..." : "AI 랜딩페이지 생성"}
               </button>
-
-              <div className="text-xs text-white/40 mt-2">
-                자동으로 고급 랜딩페이지 생성됨
-              </div>
             </div>
           )}
         </div>
 
-        {/* preview */}
         {htmlCode && (
           <div className="mt-12">
             <LandingPreview htmlCode={htmlCode} />
