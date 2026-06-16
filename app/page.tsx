@@ -117,17 +117,24 @@ const handleLogin = () => {
           </div>
 
           {placeData && (
-            <div className="mt-6 text-center">
-              <div className="text-lg font-semibold text-lime-300">{placeData?.name}</div>
-              <button
-                onClick={generateLandingPage}
-                disabled={loading}
-                className="mt-4 w-full h-12 rounded-xl font-semibold bg-gradient-to-r from-lime-400 to-emerald-500 text-black hover:from-lime-300 hover:to-emerald-400 transition shadow-[0_0_30px_rgba(132,204,22,0.25)]"
-              >
-                {loading ? "생성 중..." : "AI 랜딩페이지 생성"}
-              </button>
-            </div>
-          )}
+  <div className="mt-6 text-center">
+    <div className="text-lg font-semibold text-lime-300">
+      {placeData?.name}
+    </div>
+
+    <div className="mt-2 text-sm text-white/60 break-all">
+      {placeData?.address}
+    </div>
+
+    <button
+      onClick={generateLandingPage}
+      disabled={loading}
+      className="mt-4 w-full h-12 rounded-xl font-semibold bg-gradient-to-r from-lime-400 to-emerald-500 text-black hover:from-lime-300 hover:to-emerald-400 transition shadow-[0_0_30px_rgba(132,204,22,0.25)]"
+    >
+      {loading ? "생성 중..." : "AI 랜딩페이지 생성"}
+    </button>
+  </div>
+)}
         </div>
 
         {htmlCode && (
