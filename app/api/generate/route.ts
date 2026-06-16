@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
 
-/*
+
 const tasteSkill = fs.readFileSync(
   path.join(
     process.cwd(),
@@ -35,22 +35,15 @@ const redesignSkill = fs.readFileSync(
   'utf8'
 );
 
+/*
 const softSkill = fs.readFileSync(
   path.join(
     process.cwd(),
     'app/prompts/supanova/soft-skill/SKILL.md'
   ),
   'utf8'
-); */
-
-
-const minisupanova = fs.readFileSync(
-  path.join(
-    process.cwd(),
-    'app/prompts/supanova/mini-supanova/SKILL.md'
-  ),
-  'utf8'
-);
+); 
+*/
 
 export async function POST(req: Request) {
   try {
@@ -83,19 +76,15 @@ export async function POST(req: Request) {
     }, null, 2);
 
     const systemPrompt = `
-${minisupanova}
+${tasteSkill}
 
 당신은 Google Places 데이터를 기반으로 업체 소개용 랜딩페이지를 생성한다.
 
 중요 규칙:
-
+- 모바일과 데스크탑 모두 최적화
 - 제공된 JSON 데이터만 사용한다.
-- 업체명을 보고 외부 지식을 사용하지 않는다.
-- 동일 브랜드의 다른 지점 정보를 사용하지 않는다.
 - 입력 데이터에 없는 정보는 생성하지 않는다.
-- 메뉴, 가격, 서비스, 경력, 연혁, 수상내역을 추측하지 않는다.
-- 제공된 리뷰만 사용한다.
-- 제공된 사진만 사용한다.
+- 제공된 리뷰와 사진만 사용한다.
 - 국가에 맞는 언어를 사용한다.
 
 Hero:
@@ -149,6 +138,8 @@ Contact + CTA:
 - 출력은 10000자 이내로 제한한다
 - 설명문, 마크다운, 코드블록, 추가 해설 출력 금지
 
+${redesignSkill}
+${outputSkill}
 `;
 
     const response = await anthropic.messages.create({
