@@ -22,11 +22,22 @@ export default function Home() {
     setHtmlCode("");
   };
 
-  const handleLogin = () => {
-    supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+  // Home 내부
+const handleLogin = () => {
+  const redirectUrl = process.env.NODE_ENV === 'development' 
+    ? 'http://localhost:3000/auth/callback' 
+    : 'https://www.man-won.site/auth/callback';
+    
+  supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: redirectUrl },
+  });
+};
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    window.location.reload();
   };
 
   const generateLandingPage = async () => {
@@ -61,7 +72,7 @@ export default function Home() {
       </div>
 
       <div className="relative max-w-4xl mx-auto px-4 py-12">
-        {/* Header with Login */}
+        {/* Header with Login/Logout */}
         <header className="flex justify-between items-center mb-12">
           <div className="text-lime-300 font-bold text-xl">AI Gen</div>
           {!user ? (
@@ -73,8 +84,16 @@ export default function Home() {
               로그인
             </button>
           ) : (
-            <div className="w-10 h-10 rounded-full bg-lime-500/20 border border-lime-500/50 flex items-center justify-center font-bold text-lime-300">
-              {user.email?.charAt(0).toUpperCase()}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-lime-500/20 border border-lime-500/50 flex items-center justify-center font-bold text-lime-300">
+                {user.email?.charAt(0).toUpperCase()}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-xs text-white/50 hover:text-white transition"
+              >
+                로그아웃
+              </button>
             </div>
           )}
         </header>
