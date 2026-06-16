@@ -25,6 +25,7 @@ const outputSkill = fs.readFileSync(
   'utf8'
 );
 
+/*
 const redesignSkill = fs.readFileSync(
   path.join(
     process.cwd(),
@@ -32,15 +33,15 @@ const redesignSkill = fs.readFileSync(
   ),
   'utf8'
 );
+*/
 
-/*
 const softSkill = fs.readFileSync(
   path.join(
     process.cwd(),
     'app/prompts/supanova/soft-skill/SKILL.md'
   ),
   'utf8'
-); */
+);
 
 export async function POST(req: Request) {
   try {
@@ -74,10 +75,7 @@ export async function POST(req: Request) {
 
     const systemPrompt = `
 ${tasteSkill}
-
-
-${redesignSkill}
-
+${softSkill}
 
 당신은 Google Places 데이터를 기반으로 업체 소개용 랜딩페이지를 생성한다.
 
