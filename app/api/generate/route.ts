@@ -9,6 +9,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
 
+/*
 const tasteSkill = fs.readFileSync(
   path.join(
     process.cwd(),
@@ -25,7 +26,7 @@ const outputSkill = fs.readFileSync(
   'utf8'
 );
 
-/*
+
 const redesignSkill = fs.readFileSync(
   path.join(
     process.cwd(),
@@ -33,12 +34,20 @@ const redesignSkill = fs.readFileSync(
   ),
   'utf8'
 );
-*/
 
 const softSkill = fs.readFileSync(
   path.join(
     process.cwd(),
     'app/prompts/supanova/soft-skill/SKILL.md'
+  ),
+  'utf8'
+); */
+
+
+const minisupanova = fs.readFileSync(
+  path.join(
+    process.cwd(),
+    'app/prompts/supanova/mini-supanova/SKILL.md'
   ),
   'utf8'
 );
@@ -74,8 +83,7 @@ export async function POST(req: Request) {
     }, null, 2);
 
     const systemPrompt = `
-${tasteSkill}
-${softSkill}
+${minisupanova}
 
 당신은 Google Places 데이터를 기반으로 업체 소개용 랜딩페이지를 생성한다.
 
@@ -89,27 +97,6 @@ ${softSkill}
 - 제공된 리뷰만 사용한다.
 - 제공된 사진만 사용한다.
 - 국가에 맞는 언어를 사용한다.
-
-반드시 아래 섹션 순서를 유지한다.
-
-1. Hero
-2. About
-3. Highlights
-4. Reviews
-5. Contact + CTA
-
-레이아웃 규칙:
-
-- Mobile First
-- 모바일은 1열
-- 태블릿은 최대 2열
-- 데스크탑은 최대 3열
-- 가로 스크롤 금지
-- 이미지 overflow 금지
-- 긴 업체명 줄바꿈 처리
-- 버튼 높이 최소 48px
-- max-width 1200px 이하 사용
-- 모바일과 데스크탑 모두 최적화
 
 Hero:
 
@@ -162,7 +149,6 @@ Contact + CTA:
 - 출력은 10000자 이내로 제한한다
 - 설명문, 마크다운, 코드블록, 추가 해설 출력 금지
 
-${outputSkill}
 `;
 
     const response = await anthropic.messages.create({
@@ -176,9 +162,6 @@ ${outputSkill}
 ${promptData}
 
 위 데이터를 기반으로 랜딩페이지를 생성하라.
-
-반드시 system prompt의 Supanova Design Skill과
-Supanova Full Output Skill을 준수하라.
 
 완전한 HTML만 출력하라.`
       }],

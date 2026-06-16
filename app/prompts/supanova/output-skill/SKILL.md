@@ -67,7 +67,7 @@ A complete Supanova landing page MUST include:
 - Complete `<head>` with meta tags, Tailwind CDN, Pretendard font, Iconify, tailwind.config
 - Navigation (floating glass or minimal bar)
 - Hero section (above the fold, single most impactful section)
-- At least one trust/social proof element
+- At least one trust/social proof ele₩ment
 - Feature presentation (3-5 features minimum)
 - Testimonials or case studies
 - Primary CTA section
