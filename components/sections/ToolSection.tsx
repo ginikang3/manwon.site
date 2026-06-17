@@ -1,42 +1,36 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase";
 import SearchForm from "@/components/tools/SearchForm";
 import LandingPreview from "@/components/tools/LandingPreview";
 
 export default function ToolSection() {
-  const [user, setUser] = useState<any>(null);
   const [placeData, setPlaceData] = useState<any>(null);
   const [htmlCode, setHtmlCode] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-  }, [supabase]);
 
   const handleSearchResult = (data: any) => {
     setPlaceData(data);
     setHtmlCode("");
   };
 
-  const handleLogin = () => {
-    const redirectUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000/auth/callback' 
-      : 'https://www.man-won.site/auth/callback';
-    supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: redirectUrl } });
-  };
-
   const generateLandingPage = async () => {
+    // 1. 인증 상태 확인 (최소한의 검증만 수행)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+    
     if (!placeData) return;
     setLoading(true);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ placeData, userId: user?.id }),
+        body: JSON.stringify({ placeData, userId: session.user.id }),
       });
       const data = await res.json();
       if (data?.html) setHtmlCode(data.html);
@@ -58,7 +52,6 @@ export default function ToolSection() {
       </div>
 
       <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl p-5 shadow-[0_0_80px_rgba(34,197,94,0.08)] max-w-xl mx-auto relative">
-        {!user && <div className="absolute inset-0 z-10 cursor-pointer" onClick={handleLogin} />}
         <div className="scale-[0.96] origin-top"><SearchForm onResult={handleSearchResult} /></div>
         {placeData && (
           <div className="mt-6 text-center">
