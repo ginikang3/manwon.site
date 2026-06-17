@@ -27,10 +27,12 @@ export async function POST(request: Request) {
     const targetLng = parseFloat(coordsMatch[2]);
 
     const placeNameMatch = finalUrl.match(/place\/([^\/]+)/) || finalUrl.match(/search\/([^\/]+)/);
-    const placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]) : "";
+    // 구글맵 링크 특성상 공백이 +로 변환된 경우를 대비하여 공백 문자(' ')로 치환 보완
+    const placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]).replace(/\+/g, ' ') : "";
 
-    // 2. Nearby Search로 해당 좌표 반경 50m 내 검색 (인기도 무시, 위치 기반)
-    const searchUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=50&keyword=${encodeURIComponent(placeName)}&language=ko&key=${apiKey}`;
+    // 2. Nearby Search 검색 반경 보완 (50m -> 500m)
+    // 구글맵 공유 링크는 실제 건물 위치와 수십 미터의 오차가 있을 수 있으므로 반경을 500m로 넓혀 ZERO_RESULTS를 방지합니다.
+    const searchUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=500&keyword=${encodeURIComponent(placeName)}&language=ko&key=${apiKey}`;
     const searchRes = await fetch(searchUrl);
     const searchData = await searchRes.json();
 
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
     }
 
     // 3. 거리 계산 후 가장 가까운 장소 하나만 특정
+    // 반경을 500m로 넓혔기 때문에, 이 수식(하버사인 공식)이 물리적으로 가장 가까운 '목동점'을 정확히 골라냅니다.
     const bestPlace = searchData.results.reduce((prev: any, curr: any) => {
       const distPrev = getDistance(targetLat, targetLng, prev.geometry.location.lat, prev.geometry.location.lng);
       const distCurr = getDistance(targetLat, targetLng, curr.geometry.location.lat, curr.geometry.location.lng);
