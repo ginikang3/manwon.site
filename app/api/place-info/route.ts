@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const response = await fetch(url, { redirect: 'follow' });
     const finalUrl = response.url;
 
-    // [1단계] 좌표 추출 검증
+    // [1단계] 좌표 추출
     const coordsMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || finalUrl.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
     if (!coordsMatch) {
       return NextResponse.json({ error: `[1단계 실패] URL에서 좌표 추출 불가. 최종 주소: ${finalUrl}` }, { status: 400 });
@@ -33,24 +33,28 @@ export async function POST(request: Request) {
     // [2단계] 이름 추출 및 쿼리 파라미터 정제
     const placeNameMatch = finalUrl.match(/place\/([^\/]+)/) || finalUrl.match(/search\/([^\/]+)/);
     let placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]).replace(/\+/g, ' ') : "";
-    // 뒤에 붙은 주소창 파라미터(?hl=ko 등) 제거 안전장치
+    
+    // URL 뒤에 붙은 불필요한 파라미터 찌꺼기 정제 (오타 수정 완료)
     if (placeName.includes('?')) {
       placeName = placeName.split('?')[0];
     }
 
-    // [3단계] Nearby Search 요청 및 구글 날것의 에러 캡처
+    // [3단계] Nearby Search 1차 요청 (텍스트 포함 정밀 검색)
     const searchUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=500&keyword=${encodeURIComponent(placeName)}&language=ko&key=${apiKey}`;
     const searchRes = await fetch(searchUrl);
-    const searchData = await searchRes.json();
+    let searchData = await searchRes.json();
 
-    if (searchData.status !== 'OK') {
-      return NextResponse.json({ 
-        error: `[3단계 실패] 구글 API 상태: ${searchData.status}, 메시지: ${searchData.error_message || '없음'}, 검색어: ${placeName}` 
-      }, { status: 400 });
+    // 상호명 텍스트 불일치로 ZERO_RESULTS가 난 경우, 텍스트를 빼고 오직 "좌표"로만 150m 반경을 뒤지는 마스터키 작동
+    if (searchData.status === 'ZERO_RESULTS' || !searchData.results?.length) {
+      const fallbackUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=150&language=ko&key=${apiKey}`;
+      const fallbackRes = await fetch(fallbackUrl);
+      searchData = await fallbackRes.json();
     }
 
-    if (!searchData.results?.length) {
-      return NextResponse.json({ error: `[3단계 실패] 반경 500m 내에 '${placeName}' 결과 없음.` }, { status: 400 });
+    if (searchData.status !== 'OK' || !searchData.results?.length) {
+      return NextResponse.json({ 
+        error: `[3단계 실패] 구글 API 상태: ${searchData.status}, 검색어: ${placeName} (폴백 검색도 실패)` 
+      }, { status: 400 });
     }
 
     // [4단계] 거리 계산 후 최단거리 장소 특정
