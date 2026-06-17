@@ -2,7 +2,7 @@
 export default function InfoSection() {
   return (
     <section id="info" className="py-20 text-center">
-      <p>.asdfjsadfnbsadkfjadskjfads</p>
+      <p>Info</p>
     </section>
   );
 }
