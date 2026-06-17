@@ -2,11 +2,9 @@
 
 import { createClient } from '@/lib/supabase';
 
-// 여기서 className을 props로 받도록 정의해야 합니다.
-export default function LoginButton({ className }: { className?: string }) {
-  const supabase = createClient();
-
+export default function LoginButton() {
   const handleLogin = async () => {
+    const supabase = createClient();
     const baseUrl = process.env.NODE_ENV === 'development' 
       ? 'http://localhost:3000' 
       : 'https://www.man-won.site';
@@ -22,10 +20,9 @@ export default function LoginButton({ className }: { className?: string }) {
   return (
     <button 
       onClick={handleLogin}
-      // 전달받은 className이 있으면 쓰고, 없으면 기본 스타일을 쓰도록 설정
-      className={className || "bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"}
+      className="bg-white/5 border border-white/10 text-white px-5 py-2.5 rounded-xl hover:bg-white/10 transition font-semibold"
     >
-      Google로 로그인
+      로그인
     </button>
   );
 }

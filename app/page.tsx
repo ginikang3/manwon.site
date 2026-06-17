@@ -1,7 +1,6 @@
 import Navbar from "@/components/layout/Navbar";
 import ToolSection from "@/components/sections/ToolSection";
-// import InfoSection from "@/components/sections/InfoSection"; // 추후 구현
-
+import InfoSection from "@/components/sections/InfoSection";
 export default function Home() {
   return (
     <main className="min-h-screen text-white bg-[#050706]">
@@ -14,7 +13,7 @@ export default function Home() {
       <Navbar />
       <div className="relative max-w-4xl mx-auto px-4">
         <ToolSection />
-        {/* <InfoSection /> */}
+        <InfoSection /> 
       </div>
     </main>
   );
