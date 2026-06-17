@@ -9,23 +9,40 @@ export async function POST(request: Request) {
     const response = await fetch(url, { redirect: 'follow' });
     const finalUrl = response.url;
 
-    // 2. URL에서 place_id 직접 추출 (가장 정확한 방법)
-    // 구글 지도 URL 패턴에서 !1s 뒤에 오는 것이 place_id입니다.
-    const placeIdMatch = finalUrl.match(/!1s([^!]+)/) || finalUrl.match(/1s([^!]+)/);
-    const placeId = placeIdMatch ? placeIdMatch[1] : null;
+    // 2. URL에서 이름 및 좌표 추출
+    const placeNameMatch = finalUrl.match(/place\/([^\/]+)/);
+    const placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]) : null;
+    
+    // URL에서 @lat,lng 정보 추출 (강력한 위치 힌트)
+    const coordsMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
 
-    if (!placeId) {
-      return NextResponse.json({ error: '장소 ID를 추출할 수 없습니다. 올바른 구글 지도 URL을 사용하세요.' }, { status: 400 });
+    if (!placeName) {
+      return NextResponse.json({ error: '장소 정보를 찾을 수 없습니다.' }, { status: 400 });
     }
 
-    // 3. ID로 상세 정보 즉시 호출 (이름 검색 단계 생략)
+    // 3. Location Bias를 적용한 검색 (이름 + 좌표 기반)
+    // 50m 반경 내에서 찾도록 설정하여 검색 엔진의 인기순 정렬을 무력화함
+    let searchUrl = `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${encodeURIComponent(placeName)}&inputtype=textquery&fields=place_id`;
+    
+    if (coordsMatch) {
+      const [_, lat, lng] = coordsMatch;
+      searchUrl += `&locationbias=circle:50@${lat},${lng}`;
+    }
+    searchUrl += `&key=${apiKey}`;
+
+    const searchRes = await fetch(searchUrl);
+    const searchData = await searchRes.json();
+
+    if (searchData.status !== 'OK' || !searchData.candidates.length) {
+      return NextResponse.json({ error: '장소 검색 결과가 없습니다.' }, { status: 400 });
+    }
+
+    const placeId = searchData.candidates[0].place_id;
+
+    // 4. 상세 정보 호출
     const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}&language=ko&fields=name,formatted_phone_number,opening_hours,formatted_address,reviews,types,editorial_summary,price_level,rating,user_ratings_total,photos`;
     const detailRes = await fetch(detailUrl);
     const data = await detailRes.json();
-
-    if (data.status !== 'OK') {
-      return NextResponse.json({ error: '장소 정보를 불러올 수 없습니다.' }, { status: 400 });
-    }
 
     return NextResponse.json({
       name: data.result.name,
@@ -40,7 +57,6 @@ export async function POST(request: Request) {
       reviewCount: data.result.user_ratings_total || 0,
       photos: data.result.photos || [],
     });
-
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
