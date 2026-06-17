@@ -16,42 +16,58 @@ export async function POST(request: Request) {
     const { url } = await request.json();
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
+    if (!url) return NextResponse.json({ error: '입력된 URL이 없습니다.' }, { status: 400 });
+
     const response = await fetch(url, { redirect: 'follow' });
     const finalUrl = response.url;
 
-    // 1. 좌표 추출 (@lat,lng 또는 !3d!4d 패턴 대응)
+    // [1단계] 좌표 추출 검증
     const coordsMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || finalUrl.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-    if (!coordsMatch) return NextResponse.json({ error: 'URL에서 좌표를 찾을 수 없습니다.' }, { status: 400 });
+    if (!coordsMatch) {
+      return NextResponse.json({ error: `[1단계 실패] URL에서 좌표 추출 불가. 최종 주소: ${finalUrl}` }, { status: 400 });
+    }
     
     const targetLat = parseFloat(coordsMatch[1]);
     const targetLng = parseFloat(coordsMatch[2]);
 
+    // [2단계] 이름 추출 및 쿼리 파라미터 정제
     const placeNameMatch = finalUrl.match(/place\/([^\/]+)/) || finalUrl.match(/search\/([^\/]+)/);
-    // 구글맵 링크 특성상 공백이 +로 변환된 경우를 대비하여 공백 문자(' ')로 치환 보완
-    const placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]).replace(/\+/g, ' ') : "";
+    let placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]).replace(/\+/g, ' ') : "";
+    // 뒤에 붙은 주소창 파라미터(?hl=ko 등) 제거 안전장치
+    if (placeName.includes('?')) {
+      placeName = placeName.split('?')[0];
+    }
 
-    // 2. Nearby Search 검색 반경 보완 (50m -> 500m)
-    // 구글맵 공유 링크는 실제 건물 위치와 수십 미터의 오차가 있을 수 있으므로 반경을 500m로 넓혀 ZERO_RESULTS를 방지합니다.
+    // [3단계] Nearby Search 요청 및 구글 날것의 에러 캡처
     const searchUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=500&keyword=${encodeURIComponent(placeName)}&language=ko&key=${apiKey}`;
     const searchRes = await fetch(searchUrl);
     const searchData = await searchRes.json();
 
-    if (searchData.status !== 'OK' || !searchData.results?.length) {
-      return NextResponse.json({ error: '해당 위치에서 장소를 찾을 수 없습니다.' }, { status: 400 });
+    if (searchData.status !== 'OK') {
+      return NextResponse.json({ 
+        error: `[3단계 실패] 구글 API 상태: ${searchData.status}, 메시지: ${searchData.error_message || '없음'}, 검색어: ${placeName}` 
+      }, { status: 400 });
     }
 
-    // 3. 거리 계산 후 가장 가까운 장소 하나만 특정
-    // 반경을 500m로 넓혔기 때문에, 이 수식(하버사인 공식)이 물리적으로 가장 가까운 '목동점'을 정확히 골라냅니다.
+    if (!searchData.results?.length) {
+      return NextResponse.json({ error: `[3단계 실패] 반경 500m 내에 '${placeName}' 결과 없음.` }, { status: 400 });
+    }
+
+    // [4단계] 거리 계산 후 최단거리 장소 특정
     const bestPlace = searchData.results.reduce((prev: any, curr: any) => {
       const distPrev = getDistance(targetLat, targetLng, prev.geometry.location.lat, prev.geometry.location.lng);
       const distCurr = getDistance(targetLat, targetLng, curr.geometry.location.lat, curr.geometry.location.lng);
       return distPrev < distCurr ? prev : curr;
     });
 
-    // 4. 상세 정보 호출
+    // [5단계] 상세 정보 호출
     const detailUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${bestPlace.place_id}&key=${apiKey}&language=ko&fields=name,formatted_phone_number,opening_hours,formatted_address,reviews,types,editorial_summary,price_level,rating,user_ratings_total,photos`;
     const detailRes = await fetch(detailUrl);
     const data = await detailRes.json();
+
+    if (data.status !== 'OK') {
+      return NextResponse.json({ error: `[5단계 실패] 상세정보 로드 실패: ${data.status}` }, { status: 400 });
+    }
 
     return NextResponse.json({
       name: data.result.name,
@@ -66,8 +82,8 @@ export async function POST(request: Request) {
       reviewCount: data.result.user_ratings_total || 0,
       photos: data.result.photos || [],
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 에러: ' + error.message }, { status: 500 });
   }
 }
