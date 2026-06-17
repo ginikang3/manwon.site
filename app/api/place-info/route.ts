@@ -21,16 +21,17 @@ export async function POST(request: Request) {
     const response = await fetch(url, { redirect: 'follow' });
     const finalUrl = response.url;
 
-    // [1단계] 좌표 추출 (정밀도 향상을 위해 실제 핀 좌표(!3d, !4d)를 카메라 중심좌표(@)보다 우선 추출하며 비연속 배열도 매칭)
+    // [1단계] 좌표 추출
     let targetLat: number | null = null;
     let targetLng: number | null = null;
 
     const latMatch = finalUrl.match(/!3d(-?\d+\.\d+)/);
     const lngMatch = finalUrl.match(/!4d(-?\d+\.\d+)/);
 
+    // lngMatch[1]로 인덱스 오타 수정 완료
     if (latMatch && lngMatch) {
       targetLat = parseFloat(latMatch[1]);
-      targetLng = parseFloat(lngMatch[2]);
+      targetLng = parseFloat(lngMatch[1]);
     } else {
       const atMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
       if (atMatch) {
@@ -39,8 +40,8 @@ export async function POST(request: Request) {
       }
     }
 
-    if (targetLat === null || targetLng === null) {
-      return NextResponse.json({ error: `[1단계 실패] URL에서 좌표 추출 불가. 최종 주소: ${finalUrl}` }, { status: 400 });
+    if (targetLat === null || targetLng === null || isNaN(targetLat) || isNaN(targetLng)) {
+      return NextResponse.json({ error: `[1단계 실패] URL에서 유효한 좌표 추출 불가. 최종 주소: ${finalUrl}` }, { status: 400 });
     }
 
     // [2단계] 이름 추출 및 쿼리 파라미터 정제
