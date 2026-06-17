@@ -21,20 +21,32 @@ export async function POST(request: Request) {
     const response = await fetch(url, { redirect: 'follow' });
     const finalUrl = response.url;
 
-    // [1단계] 좌표 추출
-    const coordsMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || finalUrl.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-    if (!coordsMatch) {
+    // [1단계] 좌표 추출 (정밀도 향상을 위해 실제 핀 좌표(!3d, !4d)를 카메라 중심좌표(@)보다 우선 추출하며 비연속 배열도 매칭)
+    let targetLat: number | null = null;
+    let targetLng: number | null = null;
+
+    const latMatch = finalUrl.match(/!3d(-?\d+\.\d+)/);
+    const lngMatch = finalUrl.match(/!4d(-?\d+\.\d+)/);
+
+    if (latMatch && lngMatch) {
+      targetLat = parseFloat(latMatch[1]);
+      targetLng = parseFloat(lngMatch[2]);
+    } else {
+      const atMatch = finalUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (atMatch) {
+        targetLat = parseFloat(atMatch[1]);
+        targetLng = parseFloat(atMatch[2]);
+      }
+    }
+
+    if (targetLat === null || targetLng === null) {
       return NextResponse.json({ error: `[1단계 실패] URL에서 좌표 추출 불가. 최종 주소: ${finalUrl}` }, { status: 400 });
     }
-    
-    const targetLat = parseFloat(coordsMatch[1]);
-    const targetLng = parseFloat(coordsMatch[2]);
 
     // [2단계] 이름 추출 및 쿼리 파라미터 정제
     const placeNameMatch = finalUrl.match(/place\/([^\/]+)/) || finalUrl.match(/search\/([^\/]+)/);
     let placeName = placeNameMatch ? decodeURIComponent(placeNameMatch[1].split('/')[0]).replace(/\+/g, ' ') : "";
     
-    // URL 뒤에 붙은 불필요한 파라미터 찌꺼기 정제 (오타 수정 완료)
     if (placeName.includes('?')) {
       placeName = placeName.split('?')[0];
     }
@@ -44,9 +56,9 @@ export async function POST(request: Request) {
     const searchRes = await fetch(searchUrl);
     let searchData = await searchRes.json();
 
-    // 상호명 텍스트 불일치로 ZERO_RESULTS가 난 경우, 텍스트를 빼고 오직 "좌표"로만 150m 반경을 뒤지는 마스터키 작동
+    // 상호명 텍스트 불일치로 ZERO_RESULTS가 난 경우, 텍스트를 빼고 정확한 핀 좌표 반경 500m 이내를 탐색하는 마스터키 작동
     if (searchData.status === 'ZERO_RESULTS' || !searchData.results?.length) {
-      const fallbackUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=150&language=ko&key=${apiKey}`;
+      const fallbackUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${targetLat},${targetLng}&radius=500&language=ko&key=${apiKey}`;
       const fallbackRes = await fetch(fallbackUrl);
       searchData = await fallbackRes.json();
     }
@@ -59,8 +71,8 @@ export async function POST(request: Request) {
 
     // [4단계] 거리 계산 후 최단거리 장소 특정
     const bestPlace = searchData.results.reduce((prev: any, curr: any) => {
-      const distPrev = getDistance(targetLat, targetLng, prev.geometry.location.lat, prev.geometry.location.lng);
-      const distCurr = getDistance(targetLat, targetLng, curr.geometry.location.lat, curr.geometry.location.lng);
+      const distPrev = getDistance(targetLat!, targetLng!, prev.geometry.location.lat, prev.geometry.location.lng);
+      const distCurr = getDistance(targetLat!, targetLng!, curr.geometry.location.lat, curr.geometry.location.lng);
       return distPrev < distCurr ? prev : curr;
     });
 
