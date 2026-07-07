@@ -15,6 +15,13 @@ export default function Navbar() {
             onClick={() => document.getElementById('tool')?.scrollIntoView({behavior:'smooth'})}
             className="hover:text-lime-300 transition"
           >Tool</button>
+          
+          {/* 가격 정보 링크 추가 */}
+          <a 
+            href="/pricing" 
+            className="hover:text-lime-300 transition"
+          >Pricing</a>
+          
           <button 
             onClick={() => document.getElementById('info')?.scrollIntoView({behavior:'smooth'})}
             className="hover:text-lime-300 transition"
