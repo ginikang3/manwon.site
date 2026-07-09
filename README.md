@@ -105,6 +105,8 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 GOOGLE_MAPS_API_KEY=
 ANTHROPIC_API_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
 Create a `.env.local` file and add the required environment variables.
