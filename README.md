@@ -21,11 +21,11 @@ An AI-powered SaaS platform that automatically generates business landing pages 
 ### Home Page
 ![Home](./screenshots/home.png)
 
-### Explain
-![Explain](./screenshots/explain.png)
+### How to use
+![How to use](./screenshots/explain.png)
 
-### Copy link
-![Copylink](./screenshots/copy_link.png)
+### Generated Landing Page Link
+![Generated Landing Page Link](./screenshots/copy_link.png)
 
 ### Result
 ![Result](./screenshots/result.png)
@@ -76,12 +76,6 @@ Designed a scalable authentication and database structure using Supabase Auth an
 
 ### SEO Optimization
 Implemented server-side rendering and SEO-friendly metadata generation for better search engine visibility.
-
----
-
-## Screenshots
-
-(Add screenshots here)
 
 ---
 
