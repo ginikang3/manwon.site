@@ -1,10 +1,10 @@
 # Man-Won Site
 
-An AI-powered SaaS platform that automatically generates business landing pages using Google Maps data and AI-generated content.
+An AI-powered SaaS platform that generates SEO-friendly business landing pages from Google Maps data using AI-generated content and customizable templates.
 
-🌐 Live Demo: https://man-won.site/
+## Live Demo
 
----
+https://man-won.site/
 
 ## Features
 
@@ -21,15 +21,14 @@ An AI-powered SaaS platform that automatically generates business landing pages 
 ### Home Page
 ![Home](./screenshots/home.png)
 
-### How to use
-![How to use](./screenshots/explain.png)
+### How It Works
+![How It Works](./screenshots/explain.png)
 
 ### Generated Landing Page Link
 ![Generated Landing Page Link](./screenshots/copy_link.png)
 
-### Result
-![Result](./screenshots/result.png)
----
+### Generated Landing Page
+![Generated Landing Page](./screenshots/result.png)
 
 ## Tech Stack
 
@@ -47,21 +46,18 @@ An AI-powered SaaS platform that automatically generates business landing pages 
 ### APIs & Integrations
 - Google Places API
 - Anthropic API
+- Google OAuth
 
 ### Deployment
 - Vercel
-
----
 
 ## Architecture
 
 1. User searches for a business using Google Maps data.
 2. Business information is fetched through the Google Places API.
 3. AI generates website content based on the business profile.
-4. The generated content is saved in Supabase.
-5. A landing page is created and published automatically.
-
----
+4. The generated content is stored in Supabase.
+5. A landing page is automatically created and published.
 
 ## Technical Challenges
 
@@ -75,9 +71,10 @@ Implemented an AI workflow that generates business descriptions and landing page
 Designed a scalable authentication and database structure using Supabase Auth and PostgreSQL.
 
 ### SEO Optimization
-Implemented server-side rendering and SEO-friendly metadata generation for better search engine visibility.
+Implemented server-side rendering and metadata generation for better search engine visibility.
 
----
+### Structured AI Output
+Designed prompts and validation logic to transform AI responses into reusable page components.
 
 ## Future Improvements
 
@@ -85,15 +82,13 @@ Implemented server-side rendering and SEO-friendly metadata generation for bette
 - Multi-language support
 - Additional templates
 - Analytics dashboard
-- AI image generation and branding tools
-
----
+- AI branding tools
 
 ## Local Development
 
 ```bash
-git clone https://github.com/your-username/man-won-site.git
-cd man-won-site
+git clone https://github.com/ginikang3/manwon.site.git
+cd manwon.site
 npm install
 npm run dev
 ```
@@ -110,8 +105,6 @@ GOOGLE_CLIENT_SECRET=
 ```
 
 Create a `.env.local` file and add the required environment variables.
-
----
 
 ## Author
 
