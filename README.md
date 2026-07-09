@@ -2,7 +2,7 @@
 
 An AI-powered SaaS platform that automatically generates business landing pages using Google Maps data and AI-generated content.
 
-🌐 Live Demo: https://web.man-won.site/
+🌐 Live Demo: https://man-won.site/
 
 ---
 
