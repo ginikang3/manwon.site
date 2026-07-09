@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Man-Won Site
 
-## Getting Started
+An AI-powered SaaS platform that automatically generates business landing pages using Google Maps data and AI-generated content.
 
-First, run the development server:
+🌐 Live Demo: https://web.man-won.site/
+
+---
+
+## Features
+
+- Generate landing pages from Google Maps business information
+- AI-generated website content and copywriting
+- Authentication and user management with Supabase Auth
+- Dashboard for creating and managing websites
+- Dynamic templates for different business types
+- Responsive design for desktop and mobile devices
+- SEO-friendly landing pages
+
+## Screenshots
+
+### Home Page
+![Home](./screenshots/home.png)
+
+### Explain
+![Explain](./screenshots/explain.png)
+
+### Copy link
+![Copylink](./screenshots/copy_link.png)
+
+### Result
+![Result](./screenshots/result.png)
+---
+
+## Tech Stack
+
+### Frontend
+- Next.js 14
+- React
+- TypeScript
+- Tailwind CSS
+
+### Backend & Database
+- Supabase
+- PostgreSQL
+- Supabase Auth
+
+### APIs & Integrations
+- Google Places API
+- Anthropic API
+
+### Deployment
+- Vercel
+
+---
+
+## Architecture
+
+1. User searches for a business using Google Maps data.
+2. Business information is fetched through the Google Places API.
+3. AI generates website content based on the business profile.
+4. The generated content is saved in Supabase.
+5. A landing page is created and published automatically.
+
+---
+
+## Technical Challenges
+
+### Dynamic Template System
+Built a reusable template architecture that allows different business types to share the same codebase while maintaining customizable content.
+
+### AI Content Generation
+Implemented an AI workflow that generates business descriptions and landing page copy automatically.
+
+### Authentication and Data Management
+Designed a scalable authentication and database structure using Supabase Auth and PostgreSQL.
+
+### SEO Optimization
+Implemented server-side rendering and SEO-friendly metadata generation for better search engine visibility.
+
+---
+
+## Screenshots
+
+(Add screenshots here)
+
+---
+
+## Future Improvements
+
+- Payment integration
+- Multi-language support
+- Additional templates
+- Analytics dashboard
+- AI image generation and branding tools
+
+---
+
+## Local Development
 
 ```bash
+git clone https://github.com/your-username/man-won-site.git
+cd man-won-site
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+GOOGLE_MAPS_API_KEY=
+ANTHROPIC_API_KEY=
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a `.env.local` file and add the required environment variables.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Author
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Suhun Kang
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Portfolio: https://web.man-won.site/
+GitHub: https://github.com/ginikang3
