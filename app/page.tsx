@@ -29,7 +29,7 @@ export default function Home() {
     if (paddle) {
       paddle.Checkout.open({
         // 앞서 Paddle 대시보드에서 생성하여 복사해둔 Price ID 입력
-        items: [{ priceId: 'pri_01kwyngb4rjvbr2dfd341rqbfb', quantity: 1 }],
+        items: [{ priceId: 'pri_01kx4z5ch29wa6dt8rwjyhxws9', quantity: 1 }],
       });
     }
   };
